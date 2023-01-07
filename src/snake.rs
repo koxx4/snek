@@ -13,21 +13,6 @@ pub enum SnakeBlockDirection {
     Down
 }
 
-impl SnakeBlockDirection {
-
-    pub fn has_different_axis_than(&self, other: &SnakeBlockDirection) -> bool {
-
-        match self {
-            Right | Left => {
-                *other == Up || *other == Down
-            }
-            Up | Down => {
-                *other == Left || *other == Right
-            }
-        }
-    }
-}
-
 #[derive(Debug)]
 struct SnakeBlock {
     inner_block: types::Rectangle,
@@ -53,6 +38,7 @@ impl SnakeBlock {
         }
     }
 
+    #[allow(dead_code)]
     pub fn shift(&mut self, x: Scalar, y: Scalar) {
 
         self.outer_block[0] += x;
@@ -182,6 +168,7 @@ impl Snake {
         self.get_head().get_current_position()
     }
 
+    #[allow(dead_code)]
     fn move_block(block_size: Scalar, direction: &SnakeBlockDirection, block: &mut SnakeBlock) {
 
         match direction {
