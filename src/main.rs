@@ -1,13 +1,22 @@
+mod snake;
+mod apple;
+
+use std::path::Path;
 use piston_window::*;
+use piston_window::math::Scalar;
+use piston_window::rectangle::square;
 use piston_window::types::Color;
 use rand::{Rng, thread_rng};
+use crate::snake::Snake;
 
 fn main() {
 
     let mut clear_color: Color = [0.5, 1.0, 0.5, 1.0];
-    let mut rect_dimensions: types::Rectangle = [0.0, 0.0, 100.0, 100.0];
 
-    let mut window: PistonWindow = WindowSettings::new("Hello Piston!", (640, 480))
+    let snake_block_size: Scalar = 40.0;
+    let mut snake: Snake = Snake::new(8, snake_block_size, 10.0);
+
+    let mut window: PistonWindow = WindowSettings::new("Snek", (30.0 * snake_block_size, 20.0 * snake_block_size))
         .exit_on_esc(true)
         .build()
         .unwrap_or_else(|e|  panic!("Failed to build PistonWindow: {}", e));
@@ -15,15 +24,12 @@ fn main() {
     while let Some(e) = window.next() {
 
         e.button(|e| change_background_color(e, &mut clear_color));
-        e.button(|e| move_rect(e, &mut rect_dimensions));
+        e.button(|e| move_snake(e, &mut snake));
 
         window.draw_2d(&e, |_context, _graphics, _device| {
 
             clear(clear_color, _graphics);
-
-            rectangle([1.0, 0.0, 0.0, 1.0], // red
-                      rect_dimensions, // rectangle
-                      _context.transform, _graphics);
+            snake.draw(_context.transform, _graphics);
         });
     }
 }
@@ -47,9 +53,7 @@ fn change_background_color(event: ButtonArgs, bkg_color: &mut Color) {
     }
 }
 
-fn move_rect(event: ButtonArgs, rectangle_dimensions: &mut types::Rectangle) {
-
-    const MOVE_SPEED: f64 = 10.0;
+fn move_snake(event: ButtonArgs, snake: &mut Snake) {
 
     if let Button::Keyboard(key) = event.button {
 
@@ -58,10 +62,10 @@ fn move_rect(event: ButtonArgs, rectangle_dimensions: &mut types::Rectangle) {
         }
 
         match key {
-            Key::Up => rectangle_dimensions[1] -= MOVE_SPEED,
-            Key::Down => rectangle_dimensions[1] += MOVE_SPEED,
-            Key::Right => rectangle_dimensions[0] += MOVE_SPEED,
-            Key::Left => rectangle_dimensions[0] -= MOVE_SPEED,
+            Key::Up => snake.move_up(),
+            Key::Down => snake.move_down(),
+            Key::Right => snake.move_right(),
+            Key::Left => snake.move_left(),
             _ => {}
         }
     }
