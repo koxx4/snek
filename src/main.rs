@@ -1,10 +1,8 @@
 mod snake;
 mod apple;
 
-use std::path::Path;
 use piston_window::*;
 use piston_window::math::Scalar;
-use piston_window::rectangle::square;
 use piston_window::types::Color;
 use rand::{Rng, thread_rng};
 use crate::snake::Snake;
