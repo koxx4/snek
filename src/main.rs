@@ -26,7 +26,7 @@ fn main() {
     let guard = tick_timer.schedule_repeating(
         chrono::Duration::milliseconds(300), move || sender.send(true).unwrap());
 
-    let mut window: PistonWindow = WindowSettings::new("Snek", (30.0 * SNAKE_BLOCK_SIZE, 20.0 * SNAKE_BLOCK_SIZE))
+    let mut window: PistonWindow = WindowSettings::new("Snek 🐍", (30.0 * SNAKE_BLOCK_SIZE, 20.0 * SNAKE_BLOCK_SIZE))
         .exit_on_esc(true)
         .build()
         .unwrap_or_else(|e|  panic!("Failed to build PistonWindow: {}", e));
