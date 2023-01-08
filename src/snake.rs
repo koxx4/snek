@@ -110,6 +110,10 @@ impl Snake {
         self.blocks.len()
     }
 
+    pub fn get_length_as_str(&self) -> String {
+        self.blocks.len().to_string()
+    }
+
     pub fn move_in_current_direction(&mut self) {
 
         assert!(!self.blocks.is_empty());
@@ -153,6 +157,17 @@ impl Snake {
         let head_pos = self.get_head_position();
 
         head_pos[0] == position[0] && head_pos[1] == position[1]
+    }
+
+    pub fn is_head_at_any_body_block(&self) -> bool {
+
+        let head_pos = self.get_head_position();
+
+        self.blocks
+            .iter()
+            .rev()
+            .skip(1)
+            .any(|block| block.get_current_position() == head_pos)
     }
 
     pub fn grow(&mut self, count: SnakeBlockCount) {

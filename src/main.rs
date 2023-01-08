@@ -2,16 +2,12 @@ mod snake;
 mod apple;
 mod game;
 
-use std::fs;
 use std::ops::Add;
 use std::sync::mpsc::channel;
-use gfx_device_gl::Factory;
 use timer::Timer;
 use piston_window::*;
-use piston_window::color::BLACK;
-use piston_window::glyph_cache::rusttype::GlyphCache;
-use piston_window::math::{Scalar, translate, Vec2d};
-use piston_window::types::Color;
+use piston_window::color::{BLACK, RED};
+use piston_window::types::{Color, Scalar, Vec2d};
 use rand::{Rng, thread_rng};
 use crate::apple::{Apple, SnakeBlockCount, SnakeCollectibleGrower};
 use crate::game::G2DDrawable;
@@ -23,19 +19,24 @@ const ARENA_CELLS_WIDTH: usize = 30;
 const ARENA_CELLS_HEIGHT: usize = 20;
 const ARENA_WIDTH: Scalar = SNAKE_BLOCK_SIZE * ARENA_CELLS_WIDTH as Scalar;
 const ARENA_HEIGHT: Scalar = SNAKE_BLOCK_SIZE * ARENA_CELLS_HEIGHT as Scalar;
+const ARENA_CENTER_X: Scalar = ARENA_WIDTH * 0.5;
+const ARENA_CENTER_Y: Scalar = ARENA_HEIGHT * 0.5;
 
 fn main() {
 
     let mut clear_color: Color = [0.5, 1.0, 0.5, 1.0];
 
-    let (sender, receiver) = channel();
+    let (snake_tick_move_tx, snake_move_tick_rx) = channel::<bool>();
+    //let (snake_death_tx, snake_death_rx) = channel::<bool>();
 
     let mut snake = Snake::new(
         SNAKE_STARTING_BLOCK_COUNT, SNAKE_BLOCK_SIZE, 10.0);
 
+    let mut is_snake_dead = false;
+
     let tick_timer = Timer::new();
     let guard = tick_timer.schedule_repeating(
-        chrono::Duration::milliseconds(150), move || sender.send(true).unwrap());
+        chrono::Duration::milliseconds(150), move || snake_tick_move_tx.send(true).unwrap());
 
     let mut window: PistonWindow = WindowSettings::new("Snek 🐍", (ARENA_WIDTH, ARENA_HEIGHT))
         .exit_on_esc(true)
@@ -65,9 +66,9 @@ fn main() {
 
         window.draw_2d(&e, |_context, _graphics, _device| {
 
-            let should_snake_move = receiver.try_recv().unwrap_or(false);
+            let should_snake_move = snake_move_tick_rx.try_recv().unwrap_or(false);
 
-            if should_snake_move {
+            if should_snake_move && !is_snake_dead {
                 snake.move_in_current_direction();
             }
 
@@ -78,18 +79,35 @@ fn main() {
                 clear_color = random_solid_color();
             }
 
+            if snake.is_head_at_any_body_block() {
+                is_snake_dead = true;
+                clear_color = BLACK;
+            }
+
             clear(clear_color, _graphics);
             snake.draw(_context.transform, _graphics);
             apple.draw(_context, _context.transform, _graphics);
 
-            let score_text = "Current score: ".to_string().add(&snake.get_length().to_string());
-            Text::new_color(BLACK, 30)
+            let score_text = "Current score: ".to_string().add(&snake.get_length_as_str());
+            Text::new_color(BLACK, 20)
                 .draw(&score_text,
                       &mut default_text_font_glyphs,
                       &_context.draw_state,
                       _context.trans(50.0, 50.0).transform,
                       _graphics)
                 .unwrap();
+
+            if is_snake_dead {
+                let dead_text = "You're dead! Your score is ".to_string().add(&snake.get_length_as_str());
+                Text::new_color(RED, 30)
+                    .draw(&dead_text,
+                          &mut default_text_font_glyphs,
+                          &_context.draw_state,
+                          _context.trans(ARENA_CENTER_X - 200.0, ARENA_CENTER_Y).transform,
+                          _graphics)
+                    .unwrap();
+            }
+
             // Update glyphs before rendering.
             default_text_font_glyphs.factory.encoder.flush(_device);
         });
