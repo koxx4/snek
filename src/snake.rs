@@ -106,6 +106,10 @@ impl Snake {
             .for_each(|block| block.draw(transform, graphics));
     }
 
+    pub fn get_length(&self) -> SnakeBlockCount {
+        self.blocks.len()
+    }
+
     pub fn move_in_current_direction(&mut self) {
 
         assert!(!self.blocks.is_empty());

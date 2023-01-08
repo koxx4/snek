@@ -2,10 +2,15 @@ mod snake;
 mod apple;
 mod game;
 
+use std::fs;
+use std::ops::Add;
 use std::sync::mpsc::channel;
+use gfx_device_gl::Factory;
 use timer::Timer;
 use piston_window::*;
-use piston_window::math::{Scalar, Vec2d};
+use piston_window::color::BLACK;
+use piston_window::glyph_cache::rusttype::GlyphCache;
+use piston_window::math::{Scalar, translate, Vec2d};
 use piston_window::types::Color;
 use rand::{Rng, thread_rng};
 use crate::apple::{Apple, SnakeBlockCount, SnakeCollectibleGrower};
@@ -15,7 +20,7 @@ use crate::snake::Snake;
 const SNAKE_BLOCK_SIZE: Scalar = 40.0;
 const SNAKE_STARTING_BLOCK_COUNT: SnakeBlockCount = 3;
 const ARENA_CELLS_WIDTH: usize = 30;
-const ARENA_CELLS_HEIGHT: usize = 30;
+const ARENA_CELLS_HEIGHT: usize = 20;
 const ARENA_WIDTH: Scalar = SNAKE_BLOCK_SIZE * ARENA_CELLS_WIDTH as Scalar;
 const ARENA_HEIGHT: Scalar = SNAKE_BLOCK_SIZE * ARENA_CELLS_HEIGHT as Scalar;
 
@@ -30,7 +35,7 @@ fn main() {
 
     let tick_timer = Timer::new();
     let guard = tick_timer.schedule_repeating(
-        chrono::Duration::milliseconds(300), move || sender.send(true).unwrap());
+        chrono::Duration::milliseconds(150), move || sender.send(true).unwrap());
 
     let mut window: PistonWindow = WindowSettings::new("Snek 🐍", (ARENA_WIDTH, ARENA_HEIGHT))
         .exit_on_esc(true)
@@ -46,6 +51,13 @@ fn main() {
         &mut texture_ctx,
         apple_pos,
         SNAKE_BLOCK_SIZE);
+
+    let mut default_text_font_glyphs = window.load_font(
+        "resources/fonts/SuperMario256.ttf").unwrap();
+    default_text_font_glyphs.preload_printable_ascii(30).unwrap();
+
+    window.set_lazy(false);
+    window.set_max_fps(60);
 
     while let Some(e) = window.next() {
 
@@ -69,8 +81,27 @@ fn main() {
             clear(clear_color, _graphics);
             snake.draw(_context.transform, _graphics);
             apple.draw(_context, _context.transform, _graphics);
+
+            let score_text = "Current score: ".to_string().add(&snake.get_length().to_string());
+            Text::new_color(BLACK, 30)
+                .draw(&score_text,
+                      &mut default_text_font_glyphs,
+                      &_context.draw_state,
+                      _context.trans(50.0, 50.0).transform,
+                      _graphics)
+                .unwrap();
+            // Update glyphs before rendering.
+            default_text_font_glyphs.factory.encoder.flush(_device);
         });
     }
+}
+
+fn create_font(path: &str, factory: G2dTextureContext) -> Glyphs {
+
+    let glyphs = Glyphs::new(
+        path, factory, TextureSettings::new());
+
+    glyphs.unwrap_or_else(|_| panic!("Could not create font from {path}"))
 }
 
 fn random_solid_color() -> Color {
