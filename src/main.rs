@@ -12,31 +12,32 @@ use crate::apple::{Apple, SnakeCollectibleGrower};
 use crate::game::G2DDrawable;
 use crate::snake::Snake;
 
+static SNAKE_BLOCK_SIZE: Scalar = 40.0;
+
 fn main() {
 
     let mut clear_color: Color = [0.5, 1.0, 0.5, 1.0];
 
     let (sender, receiver) = channel();
 
-    let snake_block_size: Scalar = 40.0;
-    let mut snake = Snake::new(3, snake_block_size, 10.0);
+    let mut snake = Snake::new(3, SNAKE_BLOCK_SIZE, 10.0);
 
     let tick_timer = Timer::new();
     let guard = tick_timer.schedule_repeating(
         chrono::Duration::milliseconds(300), move || sender.send(true).unwrap());
 
-    let mut window: PistonWindow = WindowSettings::new("Snek", (30.0 * snake_block_size, 20.0 * snake_block_size))
+    let mut window: PistonWindow = WindowSettings::new("Snek", (30.0 * SNAKE_BLOCK_SIZE, 20.0 * SNAKE_BLOCK_SIZE))
         .exit_on_esc(true)
         .build()
         .unwrap_or_else(|e|  panic!("Failed to build PistonWindow: {}", e));
 
     let mut texture_ctx = window.create_texture_context();
-    let apple_pos = [10.0 * snake_block_size, 10.0 * snake_block_size];
+    let apple_pos = [10.0 * SNAKE_BLOCK_SIZE, 10.0 * SNAKE_BLOCK_SIZE];
 
     let mut apple = Apple::new_standard_apple(
         &mut texture_ctx,
         apple_pos,
-        snake_block_size);
+        SNAKE_BLOCK_SIZE);
 
     while let Some(e) = window.next() {
 
