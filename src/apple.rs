@@ -3,8 +3,8 @@ use piston_window::math::{Matrix2d, Scalar, Vec2d};
 use piston_window::rectangle::square;
 use crate::game::G2DDrawable;
 
-static RED_APPLE_TEXTURE_PATH: &str = "resources/textures/apple_red.png";
-static GOLDEN_APPLE_TEXTURE_PATH: &str = "resources/textures/apple_gold.png";
+const RED_APPLE_TEXTURE_PATH: &str = "resources/textures/apple_red.png";
+const GOLDEN_APPLE_TEXTURE_PATH: &str = "resources/textures/apple_gold.png";
 
 pub type SnakeBlockCount = usize;
 

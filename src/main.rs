@@ -12,7 +12,7 @@ use crate::apple::{Apple, SnakeCollectibleGrower};
 use crate::game::G2DDrawable;
 use crate::snake::Snake;
 
-static SNAKE_BLOCK_SIZE: Scalar = 40.0;
+const SNAKE_BLOCK_SIZE: Scalar = 40.0;
 
 fn main() {
 
@@ -68,9 +68,8 @@ fn main() {
 fn random_solid_color() -> Color {
 
     let mut rng = thread_rng();
-    let mut color: Color = [rng.gen::<f32>(), rng.gen::<f32>(), rng.gen::<f32>(), 1.0];
 
-    color
+    [rng.gen::<f32>(), rng.gen::<f32>(), rng.gen::<f32>(), 1.0]
 }
 
 fn random_pos_in_grid(cell_size: Scalar, max_x_cells: usize, max_y_cells: usize) -> Vec2d {
