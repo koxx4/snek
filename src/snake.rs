@@ -1,8 +1,9 @@
 use piston_window::color::{GRAY, GREEN};
-use piston_window::math::{Matrix2d, Scalar};
+use piston_window::math::{Matrix2d, Scalar, Vec2d};
 use piston_window::rectangle::square;
 use piston_window::{Graphics, rectangle, types};
 use piston_window::types::{Color};
+use crate::apple::SnakeBlockCount;
 use crate::snake::SnakeBlockDirection::{Down, Left, Right, Up};
 
 #[derive(PartialEq, Clone, Debug)]
@@ -66,7 +67,7 @@ impl SnakeBlock {
         rectangle(self.inner_block_color, self.inner_block, transform, graphics);
     }
 
-    pub fn get_current_position(&self) -> [Scalar; 2] {
+    pub fn get_current_position(&self) -> Vec2d {
 
         [self.outer_block[0], self.outer_block[1]]
     }
@@ -75,7 +76,8 @@ impl SnakeBlock {
 pub struct Snake {
     blocks: Vec<SnakeBlock>,
     single_block_size: Scalar,
-    head_current_direction: SnakeBlockDirection
+    head_current_direction: SnakeBlockDirection,
+    blocks_padding: Scalar
 }
 
 impl Snake {
@@ -85,13 +87,14 @@ impl Snake {
         let mut snake_body: Vec<SnakeBlock> = Vec::new();
 
         for  i in 0..blocks_count  {
-            snake_body.push(SnakeBlock::new(block_size * i as f64 + 30.0, 30.0, block_size, blocks_padding));
+            snake_body.push(SnakeBlock::new(block_size * i as f64, block_size, block_size, blocks_padding));
         }
 
         Snake {
             blocks: snake_body,
             single_block_size: block_size,
-            head_current_direction: Right
+            head_current_direction: Right,
+            blocks_padding
         }
     }
 
@@ -103,67 +106,74 @@ impl Snake {
             .for_each(|block| block.draw(transform, graphics));
     }
 
-    pub fn move_right(&mut self) {
+    pub fn move_in_current_direction(&mut self) {
 
         assert!(!self.blocks.is_empty());
+        self.move_snake();
+    }
+
+    pub fn change_dir_to_right(&mut self) {
 
         match self.head_current_direction {
-            Right | Up | Down => {
-                self.head_current_direction = Right;
-                self.move_snake();
-            },
-            Left => {}
+            Up | Down => self.head_current_direction = Right,
+            _ => {}
         }
     }
 
-    pub fn move_left(&mut self) {
-
-        assert!(!self.blocks.is_empty());
+    pub fn change_dir_to_left(&mut self) {
 
         match self.head_current_direction {
-            Left | Up | Down => {
-                self.head_current_direction = Left;
-                self.move_snake();
-            }
-            Right => {}
+            Up | Down => self.head_current_direction = Left,
+            _ => {}
         }
     }
 
-    pub fn move_up(&mut self) {
-
-        assert!(!self.blocks.is_empty());
+    pub fn change_dir_to_up(&mut self) {
 
         match self.head_current_direction {
-            Right | Up | Left => {
-                self.head_current_direction = Up;
-                self.move_snake();
-            }
-            Down => {}
+            Right | Left => self.head_current_direction = Up,
+            _ => {}
         }
     }
 
-    pub fn move_down(&mut self) {
-
-        assert!(!self.blocks.is_empty());
+    pub fn change_dir_to_down(&mut self) {
 
         match self.head_current_direction {
-            Right | Down | Left => {
-                self.head_current_direction = Down;
-                self.move_snake();
-            }
-            Up => {}
+            Right | Left => self.head_current_direction = Down,
+            _ => {}
         }
     }
 
-    fn get_head(&mut self) -> &mut SnakeBlock {
+    pub fn is_head_at_position(&self, position: &Vec2d) -> bool {
+
+        let head_pos = self.get_head_position();
+
+        head_pos[0] == position[0] && head_pos[1] == position[1]
+    }
+
+    pub fn grow(&mut self, count: SnakeBlockCount) {
+
+        for i in 0..count {
+
+            let block_in_front_pos = self.blocks[0].get_current_position();
+            let new_block_pos = [block_in_front_pos[0] - self.single_block_size, block_in_front_pos[1]];
+
+            self.blocks.insert(
+                0,
+                SnakeBlock::new(new_block_pos[0], new_block_pos[1], self.single_block_size, self.blocks_padding)
+            );
+        }
+    }
+
+    fn get_head(&self) -> &SnakeBlock {
 
         self.blocks
-            .iter_mut()
+            .iter()
             .last()
             .expect("Snake has no head")
     }
 
-    fn get_head_position(&mut self) -> [Scalar; 2] {
+    fn get_head_position(&self) -> [Scalar; 2] {
 
         self.get_head().get_current_position()
     }

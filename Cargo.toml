@@ -8,3 +8,7 @@ edition = "2021"
 [dependencies]
 piston_window = "0.127.0"
 rand = "0.8.4"
+gfx = "*"
+gfx_device_gl = "*"
+timer = "0.2.0"
+chrono = "0.4.23"
