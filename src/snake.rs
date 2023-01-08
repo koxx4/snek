@@ -6,7 +6,7 @@ use piston_window::types::{Color};
 use crate::apple::SnakeBlockCount;
 use crate::snake::SnakeBlockDirection::{Down, Left, Right, Up};
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum SnakeBlockDirection {
     Right,
     Left,
@@ -82,7 +82,7 @@ pub struct Snake {
 
 impl Snake {
 
-    pub fn new(blocks_count: i32, block_size: Scalar, blocks_padding: Scalar) -> Snake {
+    pub fn new(blocks_count: SnakeBlockCount, block_size: Scalar, blocks_padding: Scalar) -> Snake {
 
         let mut snake_body: Vec<SnakeBlock> = Vec::new();
 

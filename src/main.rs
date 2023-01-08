@@ -8,11 +8,16 @@ use piston_window::*;
 use piston_window::math::{Scalar, Vec2d};
 use piston_window::types::Color;
 use rand::{Rng, thread_rng};
-use crate::apple::{Apple, SnakeCollectibleGrower};
+use crate::apple::{Apple, SnakeBlockCount, SnakeCollectibleGrower};
 use crate::game::G2DDrawable;
 use crate::snake::Snake;
 
 const SNAKE_BLOCK_SIZE: Scalar = 40.0;
+const SNAKE_STARTING_BLOCK_COUNT: SnakeBlockCount = 3;
+const ARENA_CELLS_WIDTH: usize = 30;
+const ARENA_CELLS_HEIGHT: usize = 30;
+const ARENA_WIDTH: Scalar = SNAKE_BLOCK_SIZE * ARENA_CELLS_WIDTH as Scalar;
+const ARENA_HEIGHT: Scalar = SNAKE_BLOCK_SIZE * ARENA_CELLS_HEIGHT as Scalar;
 
 fn main() {
 
@@ -20,19 +25,22 @@ fn main() {
 
     let (sender, receiver) = channel();
 
-    let mut snake = Snake::new(3, SNAKE_BLOCK_SIZE, 10.0);
+    let mut snake = Snake::new(
+        SNAKE_STARTING_BLOCK_COUNT, SNAKE_BLOCK_SIZE, 10.0);
 
     let tick_timer = Timer::new();
     let guard = tick_timer.schedule_repeating(
         chrono::Duration::milliseconds(300), move || sender.send(true).unwrap());
 
-    let mut window: PistonWindow = WindowSettings::new("Snek 🐍", (30.0 * SNAKE_BLOCK_SIZE, 20.0 * SNAKE_BLOCK_SIZE))
+    let mut window: PistonWindow = WindowSettings::new("Snek 🐍", (ARENA_WIDTH, ARENA_HEIGHT))
         .exit_on_esc(true)
         .build()
         .unwrap_or_else(|e|  panic!("Failed to build PistonWindow: {}", e));
 
     let mut texture_ctx = window.create_texture_context();
-    let apple_pos = [10.0 * SNAKE_BLOCK_SIZE, 10.0 * SNAKE_BLOCK_SIZE];
+
+    let apple_pos = random_pos_in_grid(
+        SNAKE_BLOCK_SIZE, ARENA_CELLS_WIDTH, ARENA_CELLS_HEIGHT);
 
     let mut apple = Apple::new_standard_apple(
         &mut texture_ctx,
