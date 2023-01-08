@@ -2,9 +2,7 @@ mod snake;
 mod apple;
 mod game;
 
-use std::borrow::{BorrowMut};
 use std::sync::mpsc::channel;
-use std::sync::{Arc, Mutex};
 use timer::Timer;
 use piston_window::*;
 use piston_window::math::{Scalar, Vec2d};
