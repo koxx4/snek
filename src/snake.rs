@@ -2,7 +2,7 @@ use piston_window::color::{GRAY, GREEN};
 use piston_window::math::{Matrix2d, Scalar, Vec2d};
 use piston_window::rectangle::square;
 use piston_window::{Context, G2d, rectangle, types};
-use piston_window::types::{Color};
+use piston_window::types::{Color, Rectangle};
 use crate::apple::SnakeBlockCount;
 use crate::game::G2DDrawable;
 use crate::snake::SnakeBlockDirection::{Down, Left, Right, Up};
@@ -186,6 +186,16 @@ impl Snake {
             .rev()
             .skip(1)
             .any(|block| block.get_current_position() == head_pos)
+    }
+
+    pub fn is_head_in_bounds(&self, bounds: &Rectangle) -> bool {
+
+        let head_pos = self.get_head_position();
+
+        head_pos[0] >= bounds[0] &&
+            head_pos[0] < bounds[1] &&
+            head_pos[1] >= bounds[2] &&
+            head_pos[1] < bounds[3]
     }
 
     pub fn grow(&mut self, count: SnakeBlockCount) {

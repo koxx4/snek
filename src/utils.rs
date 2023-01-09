@@ -1,3 +1,4 @@
+use std::ops::Sub;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use piston_window::{G2dTextureContext, Glyphs, TextureSettings};
@@ -57,6 +58,35 @@ impl SnakeMoveTickSystem {
 
     pub fn stop_ticking(&mut self) {
         *self.stopped.lock().expect("Could not start ticking!") = true;
+    }
+
+    pub fn change_tick_time(&mut self, new_duration: chrono::Duration) {
+
+        self.stop_ticking();
+        self.tick_duration = new_duration;
+        self.start_ticking();
+    }
+
+    pub fn decrease_tick_time_by_or_min(&mut self, decrease: chrono::Duration, min: chrono::Duration) {
+
+        //Don't do anything if we are already at the minimum
+        if self.tick_duration == min {
+            return;
+        }
+
+        let mut new_duration = self.tick_duration.sub(decrease);
+
+        if new_duration < min {
+            new_duration = decrease;
+        }
+
+        println!("NEW TICK TIME IS {} ms", new_duration.num_milliseconds());
+        self.change_tick_time(new_duration);
+    }
+
+    pub fn tick_time_is_less_or_equal(&self, duration: chrono::Duration) -> bool {
+
+        self.tick_duration.eq(&duration)
     }
 }
 
