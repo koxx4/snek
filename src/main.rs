@@ -5,7 +5,7 @@ mod utils;
 mod controls;
 
 use piston_window::*;
-use piston_window::color::{BLACK, RED};
+use piston_window::color::{BLACK, RED, YELLOW};
 use piston_window::types::{Color, Scalar};
 use crate::apple::{Apple, SnakeBlockCount, SnakeCollectibleGrower};
 use crate::game::G2DDrawable;
@@ -13,9 +13,12 @@ use crate::snake::Snake;
 use crate::utils::SnakeMoveTickSystem;
 
 const GAME_WINDOW_TITLE: &str = "Snek 🐍";
+const GAME_WINDOW_MAX_FPS: u64 = 100;
 
 const SNAKE_BLOCK_SIZE: Scalar = 40.0;
 const SNAKE_STARTING_BLOCK_COUNT: SnakeBlockCount = 3;
+const SNAKE_MOVE_INITIAL_TICK_TIME_MS: i64 = 300;
+
 const ARENA_CELLS_WIDTH: usize = 30;
 const ARENA_CELLS_HEIGHT: usize = 20;
 const ARENA_WIDTH: Scalar = SNAKE_BLOCK_SIZE * ARENA_CELLS_WIDTH as Scalar;
@@ -34,7 +37,7 @@ fn create_and_init_game_window_with_texture_ctx() -> (PistonWindow, G2dTextureCo
         .unwrap_or_else(|e|  panic!("Failed to build PistonWindow: {}", e));
 
     window.set_lazy(false);
-    window.set_max_fps(60);
+    window.set_max_fps(GAME_WINDOW_MAX_FPS);
 
     let texture_ctx = window.create_texture_context();
 
@@ -53,7 +56,7 @@ fn create_and_preload_super_mario_font(texture_ctx: G2dTextureContext) -> Glyphs
 
 fn main() {
 
-    let mut clear_color: Color = [0.5, 1.0, 0.5, 1.0];
+    let mut clear_color: Color = YELLOW;
 
     let (mut window, mut texture_ctx) =
         create_and_init_game_window_with_texture_ctx();
@@ -73,7 +76,7 @@ fn main() {
         SNAKE_BLOCK_SIZE);
 
     let mut snake_move_tick_system =
-        SnakeMoveTickSystem::new(chrono::Duration::milliseconds(300));
+        SnakeMoveTickSystem::new(chrono::Duration::milliseconds(SNAKE_MOVE_INITIAL_TICK_TIME_MS));
 
     snake_move_tick_system.start_ticking();
 
@@ -119,13 +122,19 @@ fn handle_game_logic(
     snake.move_in_current_direction();
 
     if snake.is_head_at_position(&apple.get_position()) {
+
         snake.grow(apple.on_collect());
         let apple_pos = utils::random_pos_in_grid(40.0, 25, 15);
         apple.move_to(apple_pos);
         *clear_color = utils::random_solid_toned_color();
+
+        let duration_decrease = chrono::Duration::milliseconds(8);
+
+        snake_move_tick_system.decrease_tick_time_by_or_min(duration_decrease, duration_decrease);
     }
 
     if snake.is_head_at_any_body_block() || !snake.is_head_in_bounds(&ARENA_BOUNDS) {
+
         snake.make_dead();
         snake_move_tick_system.stop_ticking();
         *clear_color = BLACK;
