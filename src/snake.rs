@@ -1,9 +1,10 @@
 use piston_window::color::{GRAY, GREEN};
 use piston_window::math::{Matrix2d, Scalar, Vec2d};
 use piston_window::rectangle::square;
-use piston_window::{Graphics, rectangle, types};
+use piston_window::{Context, G2d, rectangle, types};
 use piston_window::types::{Color};
 use crate::apple::SnakeBlockCount;
+use crate::game::G2DDrawable;
 use crate::snake::SnakeBlockDirection::{Down, Left, Right, Up};
 
 #[derive(Clone, Debug)]
@@ -21,6 +22,17 @@ struct SnakeBlock {
     inner_block_color: Color,
     outer_block_color: Color,
     inner_block_padding: f64
+}
+
+impl G2DDrawable for SnakeBlock {
+    
+    fn draw(&self, context: Context, transform: Matrix2d, graphics: &mut G2d) {
+
+        //Draw outer
+        rectangle(self.outer_block_color, self.outer_block, transform, graphics);
+        //Draw inner
+        rectangle(self.inner_block_color, self.inner_block, transform, graphics);
+    }
 }
 
 impl SnakeBlock {
@@ -57,16 +69,7 @@ impl SnakeBlock {
         self.inner_block[0] = self.outer_block[0] + self.inner_block_padding;
         self.inner_block[1] = self.outer_block[1] + self.inner_block_padding;
     }
-
-    pub fn draw<G>(&self, transform: Matrix2d, graphics: &mut G)
-        where G: Graphics
-    {
-        //Draw outer
-        rectangle(self.outer_block_color, self.outer_block, transform, graphics);
-        //Draw inner
-        rectangle(self.inner_block_color, self.inner_block, transform, graphics);
-    }
-
+    
     pub fn get_current_position(&self) -> Vec2d {
 
         [self.outer_block[0], self.outer_block[1]]
@@ -78,6 +81,16 @@ pub struct Snake {
     single_block_size: Scalar,
     head_current_direction: SnakeBlockDirection,
     blocks_padding: Scalar
+}
+
+impl G2DDrawable for Snake {
+    
+    fn draw(&self, context: Context, transform: Matrix2d, graphics: &mut G2d) {
+        
+        self.blocks
+            .iter()
+            .for_each(|block| block.draw(context, transform, graphics));
+    }
 }
 
 impl Snake {
@@ -97,21 +110,13 @@ impl Snake {
             blocks_padding
         }
     }
-
-    pub fn draw<G>(&self, transform: Matrix2d, graphics: &mut G)
-    where G: Graphics {
-
-        self.blocks
-            .iter()
-            .for_each(|block| block.draw(transform, graphics));
-    }
-
+    
     pub fn get_length(&self) -> SnakeBlockCount {
         self.blocks.len()
     }
 
     pub fn get_length_as_str(&self) -> String {
-        self.blocks.len().to_string()
+        self.get_length().to_string()
     }
 
     pub fn move_in_current_direction(&mut self) {

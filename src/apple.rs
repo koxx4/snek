@@ -28,7 +28,7 @@ impl SnakeCollectibleGrower for Apple {
 
 impl G2DDrawable for Apple {
     fn draw(&self, context: Context, transform: Matrix2d, graphics: &mut G2d) {
-        self.image.draw(&self.texture, &Default::default(), context.transform, graphics);
+        self.image.draw(&self.texture, &Default::default(), transform, graphics);
     }
 }
 
