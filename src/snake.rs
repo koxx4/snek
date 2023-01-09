@@ -80,7 +80,8 @@ pub struct Snake {
     blocks: Vec<SnakeBlock>,
     single_block_size: Scalar,
     head_current_direction: SnakeBlockDirection,
-    blocks_padding: Scalar
+    blocks_padding: Scalar,
+    is_dead: bool
 }
 
 impl G2DDrawable for Snake {
@@ -107,7 +108,8 @@ impl Snake {
             blocks: snake_body,
             single_block_size: block_size,
             head_current_direction: Right,
-            blocks_padding
+            blocks_padding,
+            is_dead: false
         }
     }
     
@@ -122,7 +124,18 @@ impl Snake {
     pub fn move_in_current_direction(&mut self) {
 
         assert!(!self.blocks.is_empty());
-        self.move_snake();
+
+        if !self.is_dead {
+            self.move_snake();
+        }
+    }
+
+    pub fn make_dead(&mut self) {
+        self.is_dead = true;
+    }
+
+    pub fn is_dead(&self) -> bool {
+        self.is_dead
     }
 
     pub fn change_dir_to_right(&mut self) {
