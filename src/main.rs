@@ -22,12 +22,14 @@ const ARENA_WIDTH: Scalar = SNAKE_BLOCK_SIZE * ARENA_CELLS_WIDTH as Scalar;
 const ARENA_HEIGHT: Scalar = SNAKE_BLOCK_SIZE * ARENA_CELLS_HEIGHT as Scalar;
 const ARENA_CENTER_X: Scalar = ARENA_WIDTH * 0.5;
 const ARENA_CENTER_Y: Scalar = ARENA_HEIGHT * 0.5;
+static ARENA_BOUNDS: [Scalar; 4] = [0.0, ARENA_WIDTH, 0.0, ARENA_HEIGHT];
 
 fn create_and_init_game_window_with_texture_ctx() -> (PistonWindow, G2dTextureContext) {
 
     let mut window: PistonWindow = WindowSettings::new(
         GAME_WINDOW_TITLE, (ARENA_WIDTH, ARENA_HEIGHT))
         .exit_on_esc(true)
+        .resizable(false)
         .build()
         .unwrap_or_else(|e|  panic!("Failed to build PistonWindow: {}", e));
 
@@ -71,7 +73,7 @@ fn main() {
         SNAKE_BLOCK_SIZE);
 
     let mut snake_move_tick_system =
-        SnakeMoveTickSystem::new(chrono::Duration::milliseconds(150));
+        SnakeMoveTickSystem::new(chrono::Duration::milliseconds(300));
 
     snake_move_tick_system.start_ticking();
 
@@ -110,9 +112,11 @@ fn handle_game_logic(
 
     let should_snake_move = snake_move_tick_system.is_tick_available();
 
-    if should_snake_move {
-        snake.move_in_current_direction();
+    if !should_snake_move {
+        return;
     }
+
+    snake.move_in_current_direction();
 
     if snake.is_head_at_position(&apple.get_position()) {
         snake.grow(apple.on_collect());
@@ -121,8 +125,9 @@ fn handle_game_logic(
         *clear_color = utils::random_solid_toned_color();
     }
 
-    if snake.is_head_at_any_body_block() {
+    if snake.is_head_at_any_body_block() || !snake.is_head_in_bounds(&ARENA_BOUNDS) {
         snake.make_dead();
+        snake_move_tick_system.stop_ticking();
         *clear_color = BLACK;
     }
 }
